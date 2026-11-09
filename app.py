@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 from datetime import datetime
 
 st.set_page_config(page_title="Personal Automation Hub", page_icon="⚙️", layout="wide")
@@ -20,6 +21,47 @@ st.divider()
 st.header("🥇 Gold & Silver Price Tracker")
 st.write("Delivery PIN code: **110047** | Target check: **daily**")
 st.info("Phase 1 is active: record seller quotes and compare final payable cost. Phase 2 will add automated price feeds only from sources that permit automated access and provide reliable product-level prices.")
+
+st.info("Phase 1 is active: record seller quotes and compare final payable cost. The live benchmark below is an indicative raw spot rate, not a delivered retail offer.")
+
+# Live international spot benchmark converted to INR per gram.
+st.subheader("Live spot benchmark (not a retail checkout price)")
+st.caption("Gold-API.com live spot data. Converted from INR per troy ounce to INR per gram (31.1035 g). GST, seller premium, product premium and delivery are not included.")
+try:
+    spot_cols = st.columns(2)
+    spot_records = []
+    for symbol, label in [("XAU", "24K gold spot"), ("XAG", "Silver spot")]:
+        response = requests.get(f"https://api.gold-api.com/price/{symbol}/INR", timeout=12)
+        response.raise_for_status()
+        item = response.json()
+        if item.get("currency") != "INR" or not isinstance(item.get("price"), (int, float)):
+            raise ValueError(f"Unexpected price response for {symbol}")
+        per_gram = float(item["price"]) / 31.1035
+        spot_records.append((symbol, label, per_gram, item.get("updatedAt", "Timestamp unavailable")))
+    for col, (symbol, label, per_gram, updated) in zip(spot_cols, spot_records):
+        with col:
+            st.metric(label, f"₹{per_gram:,.2f}/g")
+            st.caption(f"API update (UTC): {updated}")
+except Exception as exc:
+    st.warning(f"Live spot benchmark is temporarily unavailable: {exc}")
+
+history_url = "https://raw.githubusercontent.com/rajeshyadavbigopur-beep/personal-automation-hub/main/data/spot_history.csv"
+try:
+    history = pd.read_csv(history_url)
+    if not history.empty:
+        history["date_ist"] = pd.to_datetime(history["date_ist"], errors="coerce")
+        history = history.dropna(subset=["date_ist"])
+        history = history[history["date_ist"] >= (pd.Timestamp.now(tz="Asia/Kolkata").tz_localize(None) - pd.Timedelta(days=90))]
+        if not history.empty:
+            st.markdown("**Collected daily spot benchmark – last 90 days**")
+            chart = history.pivot_table(index="date_ist", columns="metal", values="spot_per_gram_inr", aggfunc="last")
+            st.line_chart(chart)
+            st.caption("Historical benchmark only. It does not represent past retail coin/bar checkout prices.")
+        else:
+            st.caption("The 90-day history file has no observations yet. It will populate after the first successful scheduled collection.")
+except Exception:
+    st.caption("Daily benchmark history will appear after the first successful GitHub Actions collection.")
+
 
 with st.expander("Reference source and access status", expanded=True):
     st.markdown("**MMTC-PAMP official shop:** [View coins and bars](https://www.mmtcpamp.com/shop)")
