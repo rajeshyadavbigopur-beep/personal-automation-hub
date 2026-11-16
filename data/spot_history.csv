@@ -13,3 +13,5 @@ timestamp_utc,date_ist,metal,symbol,currency,spot_per_troy_oz_inr,spot_per_gram_
 2026-11-14T04:22:49+00:00,2026-11-14,Gold 24K spot benchmark,XAU,INR,366560.647,11785.1897,2026-11-14T04:22:24Z,Gold-API.com live spot API
 2026-11-15T04:26:03+00:00,2026-11-15,Silver spot benchmark,XAG,INR,4585.8514,147.4384,2026-11-15T04:25:55Z,Gold-API.com live spot API
 2026-11-15T04:26:03+00:00,2026-11-15,Gold 24K spot benchmark,XAU,INR,366453.3492,11781.74,2026-11-15T04:25:56Z,Gold-API.com live spot API
+2026-11-16T04:59:42+00:00,2026-11-16,Silver spot benchmark,XAG,INR,4469.0986,143.6848,2026-11-16T04:59:27Z,Gold-API.com live spot API
+2026-11-16T04:59:42+00:00,2026-11-16,Gold 24K spot benchmark,XAU,INR,365722.6138,11758.2463,2026-11-16T04:59:28Z,Gold-API.com live spot API
